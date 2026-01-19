@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical, Horizontal, Grid
 from textual.screen import ModalScreen, Screen
-from textual.widgets import Header, Footer, Button, Label, Input, Select, Static
+from textual.widgets import Header, Footer, Button, Label, Input, Select, Static, Checkbox
 from textual.binding import Binding
 
 from ..ai_improver import AIImprover
@@ -147,6 +147,9 @@ class ConfigurationScreen(Screen):
             Label("Gemini Model:"),
             Select(gemini_models, value=current_gemini_model, id="gemini_model_select"),
             
+            Label("Debug Mode:"),
+            Checkbox(value=config.get("debug", False), id="debug_checkbox"),
+            
             Horizontal(
                 Button("Save", variant="primary", id="save_btn"),
                 Button("Cancel", variant="error", id="cancel_btn"),
@@ -173,6 +176,7 @@ class ConfigurationScreen(Screen):
         hotkey_input = self.query_one("#hotkey_input", Input)
         type_input = self.query_one("#type_hotkey_input", Input)
         gemini_model_select = self.query_one("#gemini_model_select", Select)
+        debug_checkbox = self.query_one("#debug_checkbox", Checkbox)
         
         new_config = {
             "microphone_name": None, # Resolve logic below
@@ -180,6 +184,7 @@ class ConfigurationScreen(Screen):
             "device": device_select.value,
             "gemini_api_key": api_input.value,
             "gemini_model": gemini_model_select.value,
+            "debug": debug_checkbox.value,
             "hotkey": hotkey_input.value,
             "type_hotkey": type_input.value
         }

@@ -23,7 +23,8 @@ DEFAULT_CONFIG = {
     "gemini_prompt": None,
     "microphone_name": None,
     "gemini_model": None,
-    "device": "cpu"
+    "device": "cpu",
+    "debug": False
 }
 
 def load_config(config_path: str = "config.json") -> Dict[str, Any]:
@@ -73,7 +74,7 @@ class WhisperAppController:
         # Callbacks for UI updates
         self.on_status_change: Optional[Callable[[str], None]] = None
         self.on_log: Optional[Callable[[str], None]] = None
-        self.on_preview_update: Optional[Callable[[str], None]] = None
+        self.on_preview_update: Optional[Callable[[str, Optional[str]], None]] = None
 
     def log(self, message: str):
         if self.on_log:
@@ -162,7 +163,12 @@ class WhisperAppController:
             # Recreate recorder with specific device
             self.recorder = AudioRecorder(device_index=self.current_mic_index)
             self.typer = Typer()
-            self.improver = AIImprover(api_key=self.config["gemini_api_key"], model_name=self.config.get("gemini_model"))
+            self.improver = AIImprover(
+                api_key=self.config["gemini_api_key"], 
+                model_name=self.config.get("gemini_model") or "gemini-1.5-flash",
+                debug=self.config.get("debug", False),
+                logger=self.log
+            )
             
             self.log("Components initialized.")
             return True
@@ -224,7 +230,7 @@ class WhisperAppController:
                             self.pending_text = text
                             self.log(f"Transcribed: {text}")
                             if self.on_preview_update:
-                                self.on_preview_update(text)
+                                self.on_preview_update(text, None)
                             self.set_status("Text Ready")
                         else:
                             self.log("No text transcribed.")
@@ -245,7 +251,7 @@ class WhisperAppController:
             
             self.pending_text = None 
             if self.on_preview_update:
-                self.on_preview_update("") # Clear preview
+                self.on_preview_update("", None) # Clear preview
             
             self.recorder.start()
             self.set_status("Recording")
@@ -266,7 +272,7 @@ class WhisperAppController:
             self.typer.type_text(self.pending_text)
             self.pending_text = None
             if self.on_preview_update:
-                self.on_preview_update("")
+                self.on_preview_update("", None)
             self.log("Typed.")
             self.set_status("Ready")
         else:
@@ -283,13 +289,14 @@ class WhisperAppController:
             self.log("Requesting AI improvement...")
             def run_improve():
                 try:
+                    original_text = self.pending_text
                     prompt_template = self.config.get("gemini_prompt")
-                    improved = self.improver.improve_text(self.pending_text, prompt_template=prompt_template)
+                    improved = self.improver.improve_text(original_text, prompt_template=prompt_template)
                     if improved:
                         self.pending_text = improved
                         self.log("AI Improvement applied.")
                         if self.on_preview_update:
-                            self.on_preview_update(improved)
+                            self.on_preview_update(improved, original_text)
                         self.set_status("Text Ready (Improved)")
                 except Exception as e:
                    self.log(f"AI Error: {e}")

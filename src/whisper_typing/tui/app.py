@@ -5,6 +5,9 @@ from textual.widgets import Header, Footer, Static, Log, Label, Button
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.screen import Screen
+from rich.text import Text
+import difflib
+from typing import Optional
 
 from ..app_controller import WhisperAppController
 from .screens import ConfigurationScreen
@@ -140,12 +143,39 @@ class WhisperTui(App):
         except Exception:
             pass # Widget might not be mounted yet
 
-    def update_preview(self, text: str) -> None:
-        self.preview_text = text if text else "..."
+    def update_preview(self, text: str, original_text: Optional[str] = None) -> None:
         try:
-            self.query_one("#preview_area", Static).update(self.preview_text)
-        except Exception:
-            pass
+            preview_widget = self.query_one("#preview_area", Static)
+            
+            if not text:
+                preview_widget.update("...")
+                return
+
+            if original_text is None or original_text == text:
+                preview_widget.update(text)
+                return
+
+            # Visual Diff Logic
+            diff_text = Text()
+            # Split by words for a better diff granularity
+            words1 = original_text.split()
+            words2 = text.split()
+            
+            s = difflib.SequenceMatcher(None, words1, words2)
+            for tag, i1, i2, j1, j2 in s.get_opcodes():
+                if tag == 'equal':
+                    diff_text.append(" ".join(words1[i1:i2]) + " ")
+                elif tag == 'replace':
+                    diff_text.append(" ".join(words1[i1:i2]) + " ", style="red strike")
+                    diff_text.append(" ".join(words2[j1:j2]) + " ", style="bold green")
+                elif tag == 'delete':
+                    diff_text.append(" ".join(words1[i1:i2]) + " ", style="red strike")
+                elif tag == 'insert':
+                    diff_text.append(" ".join(words2[j1:j2]) + " ", style="bold green")
+            
+            preview_widget.update(diff_text)
+        except Exception as e:
+            self.write_log(f"Preview error: {e}")
 
     def action_reload(self):
         self.write_log("Reloading configuration...")

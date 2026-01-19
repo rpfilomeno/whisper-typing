@@ -4,9 +4,10 @@
     "improve_hotkey": "<f10>",
     "model": "openai/whisper-base",
     "language": "en",
-    "gemini_api_key": "AIzaSyCwjS-D0Adls8-DJeVBa5gHoIL2_VDbugg",
-    "gemini_prompt": "Refine and correct the following transcribed text. Consider fixing the text due to mispronunciation, improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
+    "gemini_api_key": "AIzaSyC44hsEyyBqOhVMivvgEAlq4a1ulDwq4N8",
+    "gemini_prompt": "Refine and correct the following transcribed text like a pirate. Consider fixing the text due to mispronunciation, improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
     "microphone_name": "Microphone (USB Condenser Microphone)",
-    "gemini_model": "models/gemini-2.0-flash",
-    "device": "cuda"
+    "gemini_model": "models/gemini-1.5-pro",
+    "device": "cuda",
+    "debug": true
 }
