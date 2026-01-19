@@ -2,7 +2,9 @@ import google.generativeai as genai
 import os
 
 class AIImprover:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash"):
+        self.api_key = api_key
+        self.model_name = model_name
         if not api_key:
             self.model = None
             print("Warning: No Gemini API key provided. AI improvement disabled.")
@@ -10,10 +12,24 @@ class AIImprover:
 
         try:
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
+            self.model = genai.GenerativeModel(model_name)
         except Exception as e:
             print(f"Error initializing Gemini AI: {e}")
             self.model = None
+
+    @staticmethod
+    def list_models(api_key: str):
+        """List available Gemini models that support content generation."""
+        try:
+            genai.configure(api_key=api_key)
+            models = []
+            for m in genai.list_models():
+                if 'generateContent' in m.supported_generation_methods:
+                    models.append(m.name)
+            return models
+        except Exception as e:
+            print(f"Error listing models: {e}")
+            return []
 
     def improve_text(self, text: str, prompt_template: str = None) -> str:
         """Improve text using Gemini AI."""
@@ -24,11 +40,11 @@ class AIImprover:
         if not text:
             return ""
 
-        print(f"Improving text with Gemini...")
+        print(f"Improving text with Gemini ({self.model_name})...")
         print(f"Prompt template length: {len(prompt_template) if prompt_template else 0}")
         try:
             if not prompt_template:
-                 prompt = (
+                prompt = (
                     "Refine and correct the following transcribed text. "
                     "Maintain the original meaning but improve grammar, punctuation and clarity. "
                     "Output ONLY the refined text, nothing else.\n\n"

@@ -30,7 +30,13 @@ This project uses `uv` for dependency management.
     cd whispher-typing
     ```
 
-2.  **Install dependencies**:
+2.  **Configure API Key**:
+    Create a `.env` file in the project root:
+    ```env
+    GEMINI_API_KEY=your_google_ai_key
+    ```
+
+3.  **Install dependencies**:
     ```bash
     uv sync
     ```

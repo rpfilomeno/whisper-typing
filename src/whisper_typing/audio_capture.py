@@ -9,12 +9,28 @@ import sounddevice as sd
 
 
 class AudioRecorder:
-    def __init__(self, sample_rate=16000, channels=1):
+    def __init__(self, sample_rate=16000, channels=1, device_index=None):
         self.sample_rate = sample_rate
         self.channels = channels
+        self.device_index = device_index
         self.recording = False
         self.frames = queue.Queue()
         self.thread = None
+
+    @staticmethod
+    def list_devices():
+        """List available input devices. Returns list of (index, name)."""
+        devices = []
+        try:
+            # Query all devices
+            all_devices = sd.query_devices()
+            for i, dev in enumerate(all_devices):
+                # Filter for input devices (> 0 input channels)
+                if dev['max_input_channels'] > 0:
+                    devices.append((i, dev['name']))
+        except Exception as e:
+            print(f"Error listing devices: {e}")
+        return devices
 
     def _callback(self, indata, frames, time, status):
         """Callback for sounddevice."""
@@ -24,13 +40,18 @@ class AudioRecorder:
 
     def _record(self):
         """Internal recording loop."""
-        with sd.InputStream(
-            samplerate=self.sample_rate,
-            channels=self.channels,
-            callback=self._callback
-        ):
-            while self.recording:
-                sd.sleep(100)
+        try:
+            with sd.InputStream(
+                samplerate=self.sample_rate,
+                channels=self.channels,
+                device=self.device_index,
+                callback=self._callback
+            ):
+                while self.recording:
+                    sd.sleep(100)
+        except Exception as e:
+            print(f"Error during recording: {e}")
+            self.recording = False
 
     def start(self):
         """Start recording."""
@@ -43,13 +64,14 @@ class AudioRecorder:
         self.thread.start()
         print("Recording started...")
 
-    def stop(self) -> str:
-        """Stop recording and save to a temporary WAV file. Returns file path."""
+    def stop(self):
+        """Stop recording and return audio data as numpy array."""
         if not self.recording:
             return None
 
         self.recording = False
-        self.thread.join()
+        if self.thread:
+            self.thread.join()
         
         # Collect all frames
         data = []
@@ -59,19 +81,13 @@ class AudioRecorder:
         if not data:
             return None
             
+        # Concatenate and return raw float32 array
+        # This avoids saving to disk
         recording = np.concatenate(data, axis=0)
         
-        # Save to temp file
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        temp_filename = tempfile.mktemp(prefix=f"whisper_audio_{timestamp}_", suffix=".wav")
-        
-        with wave.open(temp_filename, 'wb') as wf:
-            wf.setnchannels(self.channels)
-            wf.setsampwidth(2) # 16-bit
-            wf.setframerate(self.sample_rate)
-            # Convert float32 to int16
-            audio_int16 = (recording * 32767).astype(np.int16)
-            wf.writeframes(audio_int16.tobytes())
+        # Flatten if mono (usually shape is (N, 1))
+        if self.channels == 1:
+            recording = recording.flatten()
             
-        print(f"Recording stopped. Saved to {temp_filename}")
-        return temp_filename
+        print(f"Recording stopped. captured {len(recording)} samples.")
+        return recording
