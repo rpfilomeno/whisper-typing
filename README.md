@@ -55,18 +55,36 @@ uv run whisper-typing
 
 ## Configuration
 
-You can customize the application behavior using command-line arguments:
+You can customize the application behavior via CLI arguments or `config.json`.
 
+### Method 1: Command Line Arguments
 ```bash
-# Change hotkeys (e.g., F7 to record, F10 to type)
+# Change hotkeys
 uv run whisper-typing --hotkey "<f7>" --type-hotkey "<f10>"
 
 # Use a larger, more accurate model
 uv run whisper-typing --model openai/whisper-large-v3
 
-# Specify input language (improves accuracy)
+# Specify input language
 uv run whisper-typing --language en
 ```
+
+### Method 2: JSON Configuration
+Create a `config.json` file in the same directory:
+```json
+{
+    "hotkey": "<f8>",
+    "type_hotkey": "<f9>",
+    "model": "openai/whisper-base",
+    "language": null
+}
+```
+
+### Priority
+1. Command Line Arguments
+2. `config.json` file
+3. Default values
+
 
 ### Supported Models
 Any Hugging Face compatible Whisper model, e.g.:

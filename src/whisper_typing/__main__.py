@@ -1,29 +1,65 @@
 import argparse
+import json
+import os
 import sys
 import threading
+from typing import Any, Dict
 from pynput import keyboard
 from .audio_capture import AudioRecorder
 from .transcriber import Transcriber
 from .typer import Typer
 
+DEFAULT_CONFIG = {
+    "hotkey": "<f8>",
+    "type_hotkey": "<f9>",
+    "model": "openai/whisper-base",
+    "language": None
+}
+
+def load_config(config_path: str = "config.json") -> Dict[str, Any]:
+    """Load configuration from JSON file."""
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                user_config = json.load(f)
+                print(f"Loaded config from {config_path}")
+                return user_config
+        except Exception as e:
+            print(f"Error loading {config_path}: {e}")
+    return {}
+
 def main() -> None:
     """Run the application."""
+    # 1. Load defaults
+    config = DEFAULT_CONFIG.copy()
+    
+    # 2. Load JSON config
+    file_config = load_config()
+    config.update(file_config)
+    
+    # 3. Parse Args (override config if specified)
     parser = argparse.ArgumentParser(description="Whisper Typing - Background Speech to Text")
-    parser.add_argument("--hotkey", default="<f8>", help="Global hotkey to toggle recording (e.g., '<f8>')")
-    parser.add_argument("--type-hotkey", default="<f9>", help="Global hotkey to type the pending text (e.g., '<f9>')")
-    parser.add_argument("--model", default="openai/whisper-base", help="Whisper model ID")
-    parser.add_argument("--language", default=None, help="Language code")
+    parser.add_argument("--hotkey", help=f"Global hotkey to toggle recording (default: {config['hotkey']})")
+    parser.add_argument("--type-hotkey", help=f"Global hotkey to type the pending text (default: {config['type_hotkey']})")
+    parser.add_argument("--model", help=f"Whisper model ID (default: {config['model']})")
+    parser.add_argument("--language", help=f"Language code (default: {config['language']})")
     
     args = parser.parse_args()
     
+    # Update config with CLI args only if provided
+    if args.hotkey: config["hotkey"] = args.hotkey
+    if args.type_hotkey: config["type_hotkey"] = args.type_hotkey
+    if args.model: config["model"] = args.model
+    if args.language: config["language"] = args.language
+    
     print(f"Initializing Whisper Typing...")
-    print(f"Record Hotkey: {args.hotkey}")
-    print(f"Type Hotkey:   {args.type_hotkey}")
-    print(f"Model:         {args.model}")
+    print(f"Record Hotkey: {config['hotkey']}")
+    print(f"Type Hotkey:   {config['type_hotkey']}")
+    print(f"Model:         {config['model']}")
     
     try:
         recorder = AudioRecorder()
-        transcriber = Transcriber(model_id=args.model, language=args.language)
+        transcriber = Transcriber(model_id=config["model"], language=config["language"])
         typer = Typer()
     except Exception as e:
         print(f"Error initializing components: {e}")
@@ -53,7 +89,7 @@ def main() -> None:
                         if text:
                             pending_text = text
                             print(f"\n[PREVIEW] Transcribed text: \"{text}\"")
-                            print(f"Press {args.type_hotkey} to type this text.")
+                            print(f"Press {config['type_hotkey']} to type this text.")
                         else:
                             print("\n[PREVIEW] No text transcribed.")
                     except Exception as e:
@@ -80,12 +116,12 @@ def main() -> None:
         else:
             print("\nNo pending text to type. Record something first.")
 
-    print(f"Ready! Press {args.hotkey} to toggle recording.")
+    print(f"Ready! Press {config['hotkey']} to toggle recording.")
     
     try:
         with keyboard.GlobalHotKeys({
-            args.hotkey: on_record_toggle,
-            args.type_hotkey: on_type_confirm
+            config['hotkey']: on_record_toggle,
+            config['type_hotkey']: on_type_confirm
         }) as h:
             h.join()
     except ValueError as e:

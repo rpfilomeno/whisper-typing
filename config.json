@@ -1,0 +1,6 @@
+{
+    "hotkey": "<f8>",
+    "type_hotkey": "<f9>",
+    "model": "openai/whisper-base",
+    "language": null
+}
