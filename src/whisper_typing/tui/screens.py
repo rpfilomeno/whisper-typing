@@ -88,13 +88,38 @@ class ConfigurationScreen(Screen):
 
         # Whisper Models
         model_options = [
-            ("Tiny", "openai/whisper-tiny"),
-            ("Base", "openai/whisper-base"),
-            ("Small", "openai/whisper-small"),
-            ("Medium", "openai/whisper-medium"),
-            ("Large v3", "openai/whisper-large-v3"),
-            ("Large v3 Turbo", "openai/whisper-large-v3-turbo"),
+            # Standard Multilingual
+            ("Tiny (39M)", "openai/whisper-tiny"),
+            ("Base (74M)", "openai/whisper-base"),
+            ("Small (244M)", "openai/whisper-small"),
+            ("Medium (769M)", "openai/whisper-medium"),
+            ("Large v1 (1550M)", "openai/whisper-large-v1"),
+            ("Large v2 (1550M)", "openai/whisper-large-v2"),
+            ("Large v3 (1550M)", "openai/whisper-large-v3"),
+            ("Large (Latest)", "openai/whisper-large"),
+            # English-Only
+            ("Tiny English", "openai/whisper-tiny.en"),
+            ("Base English", "openai/whisper-base.en"),
+            ("Small English", "openai/whisper-small.en"),
+            ("Medium English", "openai/whisper-medium.en"),
+            # Distilled & Turbo
+            ("Turbo (Fastest)", "openai/whisper-large-v3-turbo"),
+            ("Distil Small En", "distil-whisper/distil-small.en"),
+            ("Distil Medium En", "distil-whisper/distil-medium.en"),
+            ("Distil Large v2", "distil-whisper/distil-large-v2"),
+            ("Distil Large v3", "distil-whisper/distil-large-v3"),
         ]
+
+        # Precision / Compute Type
+        compute_type_options = [
+            ("Auto (Recommended)", "auto"),
+            ("float16 (Fast GPU)", "float16"),
+            ("int8 (Fast CPU)", "int8"),
+            ("int8_float16", "int8_float16"),
+            ("float32 (Accurate)", "float32"),
+        ]
+        
+        current_compute_type = config.get("compute_type", "auto")
 
         # Device Selection
         device_options = [
@@ -134,6 +159,9 @@ class ConfigurationScreen(Screen):
 
             Label("Device:"),
             Select(device_options, value=config.get("device", "cpu"), id="device_select"),
+
+            Label("Compute Type:"),
+            Select(compute_type_options, value=current_compute_type, id="compute_type_select"),
             
             Label("Gemini API Key:"),
             Input(value=config.get("gemini_api_key") or "", password=True, id="api_key_input"),
@@ -182,6 +210,7 @@ class ConfigurationScreen(Screen):
         gemini_model_select = self.query_one("#gemini_model_select", Select)
         debug_checkbox = self.query_one("#debug_checkbox", Checkbox)
         typing_wpm_input = self.query_one("#typing_wpm_input", Input)
+        compute_type_select = self.query_one("#compute_type_select", Select)
         
         try:
             typing_wpm = int(typing_wpm_input.value)
@@ -192,6 +221,7 @@ class ConfigurationScreen(Screen):
             "microphone_name": None, 
             "model": model_select.value,
             "device": device_select.value,
+            "compute_type": compute_type_select.value,
             "gemini_api_key": api_input.value,
             "gemini_model": gemini_model_select.value,
             "debug": debug_checkbox.value,

@@ -1,5 +1,5 @@
-import queue
 import threading
+from typing import Optional
 
 from datetime import datetime
 
@@ -13,8 +13,9 @@ class AudioRecorder:
         self.channels = channels
         self.device_index = device_index
         self.recording = False
-        self.frames = queue.Queue()
+        self.frames = [] # Use list for easier access to current buffer
         self.thread = None
+        self._lock = threading.Lock()
 
     @staticmethod
     def list_devices():
@@ -32,7 +33,8 @@ class AudioRecorder:
         """Callback for sounddevice."""
         if status:
             print(f"Status: {status}")
-        self.frames.put(indata.copy())
+        with self._lock:
+            self.frames.append(indata.copy())
 
     def _record(self):
         """Internal recording loop."""
@@ -55,10 +57,27 @@ class AudioRecorder:
             return
         
         self.recording = True
-        self.frames = queue.Queue() # Clear queue
+        with self._lock:
+            self.frames = [] # Clear frames
         self.thread = threading.Thread(target=self._record)
         self.thread.start()
         print("Recording started...")
+
+    def get_current_data(self) -> Optional[np.ndarray]:
+        """Get the current accumulated audio data as a numpy array."""
+        with self._lock:
+            if not self.frames:
+                return None
+            data = list(self.frames) # Copy list
+            
+        if not data:
+            return None
+            
+        # Concatenate and flatten to 1D array for mono
+        recording = np.concatenate(data, axis=0)
+        if self.channels == 1:
+            recording = recording.flatten()
+        return recording
 
     def stop(self) -> np.ndarray:
         """Stop recording and return audio data as numpy array (float32)."""
@@ -68,18 +87,6 @@ class AudioRecorder:
         self.recording = False
         self.thread.join()
         
-        # Collect all frames
-        data = []
-        while not self.frames.empty():
-            data.append(self.frames.get())
-        
-        if not data:
-            return None
-            
-        # Concatenate and flatten to 1D array for mono
-        recording = np.concatenate(data, axis=0)
-        if self.channels == 1:
-            recording = recording.flatten()
-            
-        print(f"Recording stopped. Captured {len(recording)} samples.")
+        recording = self.get_current_data()
+        print(f"Recording stopped. Captured {len(recording) if recording is not None else 0} samples.")
         return recording

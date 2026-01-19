@@ -23,6 +23,7 @@ DEFAULT_CONFIG = {
     "microphone_name": None,
     "gemini_model": None,
     "device": "cpu",
+    "compute_type": "auto",
     "debug": False,
     "typing_wpm": 40
 }
@@ -74,6 +75,10 @@ class WhisperAppController:
         self.current_language = None
         self.current_mic_index = None
         self.current_device = None
+        self.current_compute_type = None
+
+        self.stop_live_transcribe = threading.Event()
+        self.live_transcribe_thread = None
 
         # Callbacks for UI updates
         self.on_status_change: Optional[Callable[[str], None]] = None
@@ -167,18 +172,22 @@ class WhisperAppController:
             if (not self.transcriber or 
                 self.current_model_id != self.config["model"] or 
                 self.current_language != self.config["language"] or
-                self.current_device != self.config.get("device", "cpu")):
+                self.current_device != self.config.get("device", "cpu") or
+                self.current_compute_type != self.config.get("compute_type", "auto")):
                 
                 self.log(f"Loading Transcriber ({self.config['model']})...")
                 device = self.config.get("device", "cpu")
+                compute_type = self.config.get("compute_type", "auto")
                 self.transcriber = Transcriber(
                     model_id=self.config["model"], 
                     language=self.config["language"],
-                    device=device
+                    device=device,
+                    compute_type=compute_type
                 )
                 self.current_model_id = self.config["model"]
                 self.current_language = self.config["language"]
                 self.current_device = device
+                self.current_compute_type = compute_type
             
             # Recreate recorder with specific device
             self.recorder = AudioRecorder(device_index=self.current_mic_index)
@@ -238,6 +247,12 @@ class WhisperAppController:
             # Finishing recording
             self.log("Stopping recording...")
             self.set_status("Processing")
+            
+            # Stop live transcription loop
+            self.stop_live_transcribe.set()
+            if self.live_transcribe_thread:
+                self.live_transcribe_thread.join()
+            
             audio_data = self.recorder.stop()
             
             if audio_data is not None:
@@ -276,6 +291,33 @@ class WhisperAppController:
             self.recorder.start()
             self.set_status("Recording")
             self.log("Recording started...")
+            
+            # Start live transcription loop
+            self.stop_live_transcribe.clear()
+            self.live_transcribe_thread = threading.Thread(target=self._live_transcription_loop, daemon=True)
+            self.live_transcribe_thread.start()
+
+    def _live_transcription_loop(self):
+        """Periodically transcribe the current audio buffer during recording."""
+        last_transcription_time = time.time()
+        while not self.stop_live_transcribe.is_set():
+            time.sleep(0.5) # Update interval
+            
+            if time.time() - last_transcription_time < 0.8: # Throttle to ~1s
+                 continue
+                 
+            audio_data = self.recorder.get_current_data()
+            if audio_data is not None and len(audio_data) > 8000: # At least 0.5s of audio
+                try:
+                    text = self.transcriber.transcribe(audio_data)
+                    if text and text != self.pending_text:
+                        self.pending_text = text
+                        if self.on_preview_update:
+                            self.on_preview_update(text, None)
+                    last_transcription_time = time.time()
+                except Exception as e:
+                    # Don't log errors too frequently in the loop
+                    pass
 
     def on_type_confirm(self):
         if self.paused: return
