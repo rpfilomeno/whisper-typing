@@ -7,6 +7,7 @@ A powerful, background speech-to-text application for Windows that runs locally.
 - **Global Hotkeys**: Control recording and typing from any application.
     - **Record/Stop**: `F8` (default)
     - **Confirm Type**: `F9` (default)
+    - **Improve Text**: `F10` (default) - Uses Gemini AI to fix grammar.
 - **Preview Mode**: Transcribed text is shown in the console first. You decide when to paste it.
 - **Local Processing**: All audio is processed locally on your machine. No data is sent to the cloud.
 - **GPU Acceleration**: Supports NVIDIA GPUs for lightning-fast transcription (requires CUDA).
@@ -75,8 +76,10 @@ Create a `config.json` file in the same directory:
 {
     "hotkey": "<f8>",
     "type_hotkey": "<f9>",
+    "improve_hotkey": "<f10>",
     "model": "openai/whisper-base",
-    "language": null
+    "language": null,
+    "gemini_api_key": "YOUR_API_KEY_HERE"
 }
 ```
 

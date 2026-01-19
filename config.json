@@ -2,5 +2,7 @@
     "hotkey": "<f8>",
     "type_hotkey": "<f9>",
     "model": "openai/whisper-base",
-    "language": null
+    "language": null,
+    "gemini_api_key": "AIzaSyAcTF023lYRknyZnxT2ZQ63KiLDstbL4JI",
+    "improve_hotkey": "<f10>"
 }
