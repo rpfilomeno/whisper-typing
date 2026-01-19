@@ -43,6 +43,9 @@ class WhisperTypingApp:
         self.listener = None
         self.is_processing = False
         self.pending_text = None
+        self.paused = False
+        self.current_model_id = None
+        self.current_language = None
         
     def load_configuration(self, args):
         """Load and merge configuration."""
@@ -69,13 +72,20 @@ class WhisperTypingApp:
         print(f"AI Enabled:     {'Yes' if self.config['gemini_api_key'] else 'No'}")
 
         try:
-            # Re-use transcriber if model is same to save time? 
-            # For simplicity & correctness, we recreate it, unless we want to optimize.
-            # Optimization: Check if model/language changed.
-            if not self.transcriber or self.transcriber.model_id != self.config["model"] or self.transcriber.language != self.config["language"]:
-                 self.transcriber = Transcriber(model_id=self.config["model"], language=self.config["language"])
+            # Reload Optimization: Check if model/language changed
+            if (not self.transcriber or 
+                self.current_model_id != self.config["model"] or 
+                self.current_language != self.config["language"]):
+                
+                print("Loading Transcriber pipeline...")
+                self.transcriber = Transcriber(model_id=self.config["model"], language=self.config["language"])
+                self.current_model_id = self.config["model"]
+                self.current_language = self.config["language"]
+            else:
+                print("Transcriber configuration unchanged, keeping existing model.")
             
-            # These are cheap to recreate
+            # These are cheap to recreate, but effectively just updating config is cleaner if we supported it.
+            # Recreating is safer to ensure new keys/settings are picked up.
             self.recorder = AudioRecorder()
             self.typer = Typer()
             self.improver = AIImprover(api_key=self.config["gemini_api_key"])
@@ -98,7 +108,7 @@ class WhisperTypingApp:
             })
             self.listener.start()
             print(f"Ready! Press {self.config['hotkey']} to toggle recording.")
-            print("Type '/q' to quit, '/r' to reload config.")
+            print("Commands: '/p' pause, '/q' quit, '/r' reload.")
         except ValueError as e:
             print(f"Invalid hotkey format: {e}")
 
@@ -106,8 +116,19 @@ class WhisperTypingApp:
         if self.listener:
             self.listener.stop()
 
+    def toggle_pause(self):
+        self.paused = not self.paused
+        state = "PAUSED" if self.paused else "RESUMED"
+        print(f"\nApp is now {state}.")
+        if self.paused:
+            print("Hotkeys effectively disabled.")
+        else:
+            print("Hotkeys enabled.")
+
     # --- Callbacks ---
     def on_record_toggle(self):
+        if self.paused: return
+        
         if self.is_processing:
             print("Still processing previous audio, please wait.")
             return
@@ -139,6 +160,8 @@ class WhisperTypingApp:
             self.recorder.start()
 
     def on_type_confirm(self):
+        if self.paused: return
+
         if self.pending_text:
             self.typer.type_text(self.pending_text)
             self.pending_text = None
@@ -147,6 +170,8 @@ class WhisperTypingApp:
             print("\nNo pending text to type.")
 
     def on_improve_text(self):
+        if self.paused: return
+
         if self.is_processing:
              print("Please wait, currently processing...")
              return
@@ -197,6 +222,8 @@ def main() -> None:
                 app.load_configuration(args)
                 if app.initialize_components():
                     app.start_listener()
+            elif cmd == '/p':
+                app.toggle_pause()
             elif cmd:
                 print(f"Unknown command: {cmd}")
     except KeyboardInterrupt:

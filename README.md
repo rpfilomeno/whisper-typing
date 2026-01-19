@@ -8,7 +8,7 @@ A powerful, background speech-to-text application for Windows that runs locally.
     - **Record/Stop**: `F8` (default)
     - **Confirm Type**: `F9` (default)
     - **Improve Text**: `F10` (default) - Uses Gemini AI to fix grammar.
-- **Interactive Modes**: Type `/r` to reload config or `/q` to quit from the terminal.
+- **Interactive Modes**: Type `/r` to reload, `/p` to pause, or `/q` to quit.
 - **Preview Mode**: Transcribed text is shown in the console first. You decide when to paste it.
 - **Local Processing**: All audio is processed locally on your machine. No data is sent to the cloud.
 - **GPU Acceleration**: Supports NVIDIA GPUs for lightning-fast transcription (requires CUDA).
