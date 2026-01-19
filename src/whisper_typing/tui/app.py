@@ -16,22 +16,29 @@ class WhisperTui(App):
         layout: vertical;
     }
     
+    #preview_row {
+        height: 20%;
+        margin: 1 1 0 1;
+    }
+
+    #preview_area {
+        width: 75%;
+        height: 100%;
+        border: solid $secondary;
+        background: $surface;
+        padding: 1;
+        margin: 0;
+    }
+
     #status_bar {
-        dock: top;
-        height: 3;
+        width: 25%;
+        height: 100%;
         background: $primary-background;
         color: $text;
         content-align: center middle;
         text-style: bold;
-        border-bottom: solid $primary;
-    }
-
-    #preview_area {
-        height: 20%;
-        border: solid $secondary;
-        background: $surface;
-        padding: 1;
-        margin: 1;
+        border: solid $primary;
+        margin: 0;
     }
     
     #shortcuts_info {
@@ -40,7 +47,7 @@ class WhisperTui(App):
         background: $surface;
         border-bottom: solid $accent;
         padding-bottom: 0;
-        margin-bottom: 1;
+        margin: 0 1 1 1;
         width: 100%;
     }
 
@@ -73,17 +80,20 @@ class WhisperTui(App):
         
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        yield Label(self.status_message, id="status_bar")
+        yield Footer()
         
         yield Container(
             Label("Preview:", classes="label"),
-            Static(self.preview_text, id="preview_area"),
+            Horizontal(
+                Static(self.preview_text, id="preview_area"),
+                Label(self.status_message, id="status_bar"),
+                id="preview_row"
+            ),
             Label(self.shortcuts_text, id="shortcuts_info"), 
             Label("Logs:", classes="label"),
             Log(id="log_area"),
             id="main_container"
         )
-        yield Footer()
 
     def on_mount(self) -> None:
         self.title = "Whisper Typing"
