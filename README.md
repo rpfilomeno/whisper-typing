@@ -7,6 +7,7 @@ A powerful, background speech-to-text application for Windows that runs locally.
 - **Global Hotkeys**: Control recording and typing from any application.
     - **Record/Stop**: `F8` (default)
     - **Confirm Type**: `F9` (default)
+    - **Improve Text**: `F10` (default) - Uses Gemini AI to fix grammar.
 - **Preview Mode**: Transcribed text is shown in the console first. You decide when to paste it.
 - **Local Processing**: All audio is processed locally on your machine. No data is sent to the cloud.
 - **GPU Acceleration**: Supports NVIDIA GPUs for lightning-fast transcription (requires CUDA).
@@ -55,18 +56,38 @@ uv run whisper-typing
 
 ## Configuration
 
-You can customize the application behavior using command-line arguments:
+You can customize the application behavior via CLI arguments or `config.json`.
 
+### Method 1: Command Line Arguments
 ```bash
-# Change hotkeys (e.g., F7 to record, F10 to type)
+# Change hotkeys
 uv run whisper-typing --hotkey "<f7>" --type-hotkey "<f10>"
 
 # Use a larger, more accurate model
 uv run whisper-typing --model openai/whisper-large-v3
 
-# Specify input language (improves accuracy)
+# Specify input language
 uv run whisper-typing --language en
 ```
+
+### Method 2: JSON Configuration
+Create a `config.json` file in the same directory:
+```json
+{
+    "hotkey": "<f8>",
+    "type_hotkey": "<f9>",
+    "improve_hotkey": "<f10>",
+    "model": "openai/whisper-base",
+    "language": null,
+    "gemini_api_key": "YOUR_API_KEY_HERE"
+}
+```
+
+### Priority
+1. Command Line Arguments
+2. `config.json` file
+3. Default values
+
 
 ### Supported Models
 Any Hugging Face compatible Whisper model, e.g.:
