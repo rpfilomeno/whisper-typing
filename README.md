@@ -1,107 +1,83 @@
-# Python Starter
+# Whisper Typing
 
-A minimalist template for starting a new [Python](https://www.python.org/) project.
+A powerful, background speech-to-text application for Windows that runs locally. It listens for a global hotkey to record your voice, transcribes it using OpenAI's Whisper model (accelerated with `transformers` and CUDA), and types the result into your active window after your confirmation.
 
-This template provides a basic Python project containing an example package with built-in support for formatting, linting, testing, and continuous integration.
+## Features
 
-## Key Features
+- **Global Hotkeys**: Control recording and typing from any application.
+    - **Record/Stop**: `F8` (default)
+    - **Confirm Type**: `F9` (default)
+- **Preview Mode**: Transcribed text is shown in the console first. You decide when to paste it.
+- **Local Processing**: All audio is processed locally on your machine. No data is sent to the cloud.
+- **GPU Acceleration**: Supports NVIDIA GPUs for lightning-fast transcription (requires CUDA).
+- **Customizable**: Configure hotkeys, model size (e.g., `tiny`, `base`, `large`), and language via command-line arguments.
 
-- Uses [uv](https://docs.astral.sh/uv/) as the package manager.
-- Supports formatting and linting with [dprint](https://dprint.dev/) and [Ruff](https://github.com/astral-sh/ruff).
-- Supports testing and coverage checks with [Pytest](https://docs.pytest.org/en/stable/).
-- Fixes formatting and linting issues during pre-commit hooks using [Lefthook](https://lefthook.dev/).
-- Includes preconfigured workflows for [Dependabot](https://docs.github.com/en/code-security/dependabot) and [GitHub Actions](https://github.com/features/actions).
+## Prerequisites
+
+- **Python 3.10+**
+- **FFmpeg**: Must be available on your system `PATH` (used for audio processing).
+- **NVIDIA GPU (Recommended)**: For optimal performance. The app will fallback to CPU but it is significantly slower.
+
+## Installation
+
+This project uses `uv` for dependency management.
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/rpfilomeno/whispher-typing.git
+    cd whispher-typing
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    uv sync
+    ```
 
 ## Usage
 
-This guide explains how to use this template to start a new Python project, from creation to release.
+Run the application using `uv`:
 
-### Create a New Project
-
-Follow [this link](https://github.com/new?template_name=python-starter&template_owner=threeal) to create a new project based on this template. For more information about creating a repository from a template on GitHub, refer to [this documentation](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
-
-Alternatively, you can clone this repository locally to begin using this template.
-
-### Set Up Tools
-
-#### Set Up Package Manager
-
-This template uses [uv](https://docs.astral.sh/uv/) as the package manager. If uv is not installed, follow [this guide](https://docs.astral.sh/uv/getting-started/installation/) to install it. Then, synchronize the project dependencies with:
-
-```sh
-uv sync
+```bash
+uv run whisper-typing
 ```
 
-For more information on uv, including adding dependencies or running tools, refer to [this documentation](https://docs.astral.sh/uv/guides/).
+### Workflow
 
-#### Set Up Git Hooks
+1.  **Start Recording**: Press **F8**. You will see "Recording started..." in the console.
+2.  **Speak**: Say what you want to type.
+3.  **Stop & Transcribe**: Press **F8** again. The audio will be processed.
+4.  **Preview**: The transcribed text will appear in the console:
+    ```
+    [PREVIEW] Transcribed text: "Hello world"
+    Press <f9> to type this text.
+    ```
+5.  **Type**: Switch to your target application (e.g., Notepad, Slack) and press **F9**. The text will be typed out automatically.
 
-This template uses [Lefthook](https://lefthook.dev/) to manage Git hooks, especially for the pre-commit hook. Lefthook will be installed as a development dependency by the package manager, and the pre-commit hook can be installed with:
+## Configuration
 
-```sh
-uv run lefthook install
+You can customize the application behavior using command-line arguments:
+
+```bash
+# Change hotkeys (e.g., F7 to record, F10 to type)
+uv run whisper-typing --hotkey "<f7>" --type-hotkey "<f10>"
+
+# Use a larger, more accurate model
+uv run whisper-typing --model openai/whisper-large-v3
+
+# Specify input language (improves accuracy)
+uv run whisper-typing --language en
 ```
 
-After that, each commit to the project will trigger a hook that checks for formatting and linting. This ensures that committed files follow the specified rules.
+### Supported Models
+Any Hugging Face compatible Whisper model, e.g.:
+- `openai/whisper-tiny`
+- `openai/whisper-base` (Default)
+- `openai/whisper-small`
+- `openai/whisper-medium`
+- `openai/whisper-large-v3`
 
-For more information on Lefthook and how it manages hooks, refer to [this documentation](https://lefthook.dev/usage/index.html).
+## Troubleshooting
 
-### Developing the Project
-
-#### Choose a License
-
-By default, this template is [unlicensed](https://unlicense.org/). Before modifying this template, it is recommended to replace the [`LICENSE`](./LICENSE) file with the license that will be used by the new project. For more information about licensing a repository, refer to [this documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
-
-Alternatively, you can remove the `LICENSE` file or leave it as is to keep the new project unlicensed.
-
-#### Writing the Package
-
-Modify the source files under the [`src`](./src) directory to start writing the package. If you're new to Python, refer to [this documentation](https://wiki.python.org/moin/BeginnersGuide) for guidance.
-
-You can replace the [`src/bonacci`](./src/bonacci) directory with your package name. You can also add as many packages as you want to the `src` directory. Just make sure to update the contents of the [`pyproject.toml`](./pyproject.toml) file according to your package information.
-
-#### Testing the Package
-
-Test files in this template are named `test_*.py` and located in the [`tests`](./tests) directory. Write the necessary tests for your package and run them with:
-
-```sh
-uv run pytest -v --cov
-```
-
-This template uses [Pytest](https://docs.pytest.org/en/stable/) as the testing framework. For more information on testing with Pytest, refer to [this documentation](https://docs.pytest.org/en/stable/getting-started.html).
-
-#### Push the Changes
-
-After writing and testing the package, commit the changes and push them to GitHub. Each push to the `main` branch will trigger a GitHub Actions workflow for continuous integration. For more details on GitHub Actions workflows, refer to [this documentation](https://docs.github.com/en/actions/about-github-actions/understanding-github-actions).
-
-Instead of pushing directly to the `main` branch, it is recommended to push to a separate branch and then create a pull request to merge into `main`. This allows changes to be reviewed and checked by GitHub Actions before merging. For more details on pull requests, refer to [this documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
-
-### Releasing the Project
-
-#### Specify Version Number
-
-Update the version number of the package in the [`pyproject.toml`](./pyproject.toml) file to match the version you plan to release. The version number usually follows the semantic versioning system. Refer to [this documentation](https://packaging.python.org/en/latest/discussions/versioning/) for more information on versioning in Python projects.
-
-#### Build the Package
-
-Before releasing, check if the package can be built with:
-
-```sh
-uv build
-```
-
-This will create a source tarball and wheel distribution of the package under the `dist` directory. You can verify the contents of the package or install it locally to ensure that it is built correctly. For more information on building the package, refer to [this documentation](https://docs.astral.sh/uv/guides/package/#building-your-package).
-
-#### Release on GitHub
-
-Create a new tag in the `main` branch corresponding to the version number of the release, and then draft a new release using that tag. You can also include the source tarball and wheel distribution as assets in the release. Refer to [this documentation](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) for more information on managing releases on GitHub.
-
-#### Publish on PyPI
-
-Run the following command to publish the package to [PyPI](https://pypi.org/):
-
-```sh
-uv publish
-```
-
-The command will prompt you to enter your username or token for publishing on PyPI. After publishing, wait a few minutes for the package to become available on PyPI. For more information on publishing to PyPI, refer to [this documentation](https://docs.astral.sh/uv/guides/package/#publishing-your-package).
+- **FFmpeg not found**: Ensure FFmpeg is installed and added to your system Environment Variables.
+- **Audio not recording**: Check your default microphone input settings in Windows.
+- **Slow Transcription**: Ensure `torch` is using your GPU. This app prints the device (cuda/cpu) on startup.
