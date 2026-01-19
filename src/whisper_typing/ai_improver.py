@@ -1,6 +1,7 @@
 from google import genai
 import os
 from typing import Optional, Callable
+from google.api_core import exceptions
 
 class AIImprover:
     def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash", debug: bool = False, logger: Optional[Callable[[str], None]] = None):
@@ -82,6 +83,9 @@ class AIImprover:
                 self.log(f"DEBUG: Gemini raw response:\n{improved_text}")
                 
             return improved_text
+        except exceptions.ResourceExhausted as e:
+            self.log(f"You have exceeded your Gemini API usage quota: {e}")
+            return text
         except Exception as e:
             self.log(f"Error during AI improvement: {e}")
             return text
