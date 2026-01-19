@@ -4,5 +4,6 @@
     "model": "openai/whisper-base",
     "language": null,
     "gemini_api_key": "AIzaSyAcTF023lYRknyZnxT2ZQ63KiLDstbL4JI",
-    "improve_hotkey": "<f10>"
+    "improve_hotkey": "<f10>",
+    "gemini_prompt": "Refine and correct the following transcribed text. Maintain the original meaning but improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}"
 }

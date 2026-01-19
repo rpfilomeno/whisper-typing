@@ -15,7 +15,7 @@ class AIImprover:
             print(f"Error initializing Gemini AI: {e}")
             self.model = None
 
-    def improve_text(self, text: str) -> str:
+    def improve_text(self, text: str, prompt_template: str = None) -> str:
         """Improve text using Gemini AI."""
         if not self.model:
             print("Gemini AI is not configured.")
@@ -25,13 +25,19 @@ class AIImprover:
             return ""
 
         print(f"Improving text with Gemini...")
+        print(f"Prompt template length: {len(prompt_template) if prompt_template else 0}")
         try:
-            prompt = (
-                "Refine and correct the following transcribed text. "
-                "Maintain the original meaning but improve grammar, punctuation and clarity. "
-                "Output ONLY the refined text, nothing else.\n\n"
-                f"Text: {text}"
-            )
+            if not prompt_template:
+                 prompt = (
+                    "Refine and correct the following transcribed text. "
+                    "Maintain the original meaning but improve grammar, punctuation and clarity. "
+                    "Output ONLY the refined text, nothing else.\n\n"
+                    f"Text: {text}"
+                )
+            else:
+                # Use custom prompt, replacing {text} placeholder
+                prompt = prompt_template.replace("{text}", text)
+
             response = self.model.generate_content(prompt)
             improved_text = response.text.strip()
             print(f"Improved text: {improved_text}")

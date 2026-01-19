@@ -135,7 +135,9 @@ def main() -> None:
             def run_improve():
                 nonlocal pending_text, is_processing
                 try:
-                    improved = improver.improve_text(pending_text)
+                    # Pass the prompt from config
+                    prompt_template = config.get("gemini_prompt")
+                    improved = improver.improve_text(pending_text, prompt_template=prompt_template)
                     if improved:
                         pending_text = improved
                         print(f"\n[AI IMPROVED] \"{pending_text}\"")
