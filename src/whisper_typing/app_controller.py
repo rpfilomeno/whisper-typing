@@ -19,7 +19,6 @@ DEFAULT_CONFIG = {
     "improve_hotkey": "<f10>",
     "model": "openai/whisper-base",
     "language": None,
-    "gemini_api_key": "",
     "gemini_prompt": None,
     "microphone_name": None,
     "gemini_model": None,
@@ -40,10 +39,14 @@ def load_config(config_path: str = "config.json") -> Dict[str, Any]:
     return {}
 
 def save_config(config: Dict[str, Any], config_path: str = "config.json"):
-    """Save configuration to JSON file."""
+    """Save configuration to JSON file, excluding sensitive data."""
     try:
+        # Create a copy and remove sensitive keys
+        save_data = config.copy()
+        save_data.pop("gemini_api_key", None)
+        
         with open(config_path, "w") as f:
-            json.dump(config, f, indent=4)
+            json.dump(save_data, f, indent=4)
     except Exception as e:
         print(f"Error saving config: {e}")
 
@@ -129,6 +132,22 @@ class WhisperAppController:
         self.config.update(new_config)
         save_config(self.config)
         self.log("Configuration saved.")
+
+    def update_env_api_key(self, api_key: str):
+        """Update Gemini API Key in .env file."""
+        try:
+            from dotenv import set_key
+            env_file = ".env"
+            # Ensure file exists
+            if not os.path.exists(env_file):
+                with open(env_file, "w") as f:
+                    pass
+            set_key(env_path=env_file, key_to_set="GEMINI_API_KEY", value_to_set=api_key)
+            # Update current session environment variable
+            os.environ["GEMINI_API_KEY"] = api_key
+            self.log("API Key updated in .env")
+        except Exception as e:
+            self.log(f"Error updating .env: {e}")
 
     def initialize_components(self) -> bool:
         """Initialize or re-initialize components."""

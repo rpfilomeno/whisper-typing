@@ -219,6 +219,13 @@ class ConfigurationScreen(Screen):
                 has_changes = True
                 break
         
+        # Special handling for API Key separately or part of change
+        import os
+        env_api_key = os.getenv("GEMINI_API_KEY", "")
+        if api_input.value != env_api_key:
+            self.controller.update_env_api_key(api_input.value)
+            has_changes = True # Signal that we should reload/re-init if key changed
+        
         if has_changes:
             self.controller.update_config(new_config)
             self.dismiss(True) # Return True to indicate save and reload
