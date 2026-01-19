@@ -1,30 +1,26 @@
 [project]
-name = "bonacci"
+name = "whisper-typing"
 version = "0.0.0"
-dependencies = []
+description = "An example Python project for generating a Fibonacci sequence"
+readme = "README.md"
 requires-python = ">=3.13"
+license = "Unlicense"
 authors = [
   { name = "Leonardo Bonacci", email = "leonardo@bonacci.com" },
 ]
-description = "An example Python project for generating a Fibonacci sequence"
-readme = "README.md"
-license = "Unlicense"
 keywords = ["example", "fibonacci"]
 classifiers = [
   "Development Status :: 1 - Planning",
   "Programming Language :: Python :: 3 :: Only",
 ]
-
-[project.scripts]
-bonacci = "bonacci.__main__:main"
+dependencies = []
 
 [project.urls]
-repository = "https://github.com/leonardo/bonacci.git"
 issues = "https://github.com/leonardo/bonacci/issues"
+repository = "https://github.com/leonardo/bonacci.git"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[project.scripts]
+whisper-typing = "whisper_typing.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -34,12 +30,16 @@ dev = [
   "ruff>=0.13.0",
 ]
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [tool.coverage.report]
 fail_under = 100
 omit = ["__main__.py"]
 
 [tool.coverage.run]
-source = ["bonacci"]
+source = ["whisper_typing"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src"]
