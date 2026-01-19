@@ -20,7 +20,8 @@ DEFAULT_CONFIG = {
     "language": None,
     "gemini_api_key": "",
     "gemini_prompt": None,
-    "microphone_name": None
+    "microphone_name": None,
+    "gemini_model": None
 }
 
 def load_config(config_path: str = "config.json") -> Dict[str, Any]:
@@ -125,6 +126,42 @@ class WhisperTypingApp:
         print(f"Configured microphone '{mic_name}' not found.")
         return None
 
+    def select_gemini_model(self):
+        """Interactive Gemini model selection."""
+        if not self.config.get("gemini_api_key"):
+            print("Gemini API Key missing. Cannot list models.")
+            return None
+
+        print("\nFetching available Gemini models...")
+        models = AIImprover.list_models(self.config["gemini_api_key"])
+        
+        if not models:
+            print("No suitable models found or API error.")
+            return None
+            
+        print("\nAvailable Gemini Models:")
+        for i, m in enumerate(models):
+            print(f"{i}: {m}")
+            
+        print("\nEnter ID to select, or 'c' to cancel.")
+        while True:
+            try:
+                user_input = input("Select Model ID: ").strip()
+                if user_input.lower() == 'c':
+                    return None
+                
+                idx = int(user_input)
+                if 0 <= idx < len(models):
+                    selected = models[idx]
+                    print(f"Selected: {selected}")
+                    self.config["gemini_model"] = selected
+                    save_config(self.config)
+                    return selected
+                else:
+                    print("Invalid ID.")
+            except ValueError:
+                print("Invalid input.")
+
     def initialize_components(self):
         """Initialize or re-initialize components."""
         print(f"Initializing Whisper Typing...")
@@ -140,13 +177,25 @@ class WhisperTypingApp:
             print("\nMicrophone not configured or not found.")
             mic_index = self.select_microphone()
             if mic_index is None:
-                # If they cancel or fail to select, we might fallback to default (None) or exit
                 print("Using default system microphone.")
-                mic_index = None # sounddevice execution uses default if device is None
+                mic_index = None
 
         self.current_mic_index = mic_index
         mic_name = self.config.get("microphone_name", "Default")
-        print(f"Microphone:     {mic_name} (ID: {mic_index if mic_index is not None else 'Default'})")
+        print(f"Microphone:     {mic_name}")
+
+        # Gemini Model Setup
+        gemini_model = self.config.get("gemini_model")
+        if self.config.get("gemini_api_key") and not gemini_model:
+            print("\nGemini Model not configured.")
+            gemini_model = self.select_gemini_model()
+            if not gemini_model:
+                 print("Using default model: gemini-1.5-flash")
+                 gemini_model = "gemini-1.5-flash"
+        
+        self.config["gemini_model"] = gemini_model
+        if gemini_model:
+            print(f"Gemini Model:   {gemini_model}")
 
         try:
             # Reload Optimization: Check if model/language changed
@@ -164,7 +213,7 @@ class WhisperTypingApp:
             # Recreate recorder with specific device
             self.recorder = AudioRecorder(device_index=self.current_mic_index)
             self.typer = Typer()
-            self.improver = AIImprover(api_key=self.config["gemini_api_key"])
+            self.improver = AIImprover(api_key=self.config["gemini_api_key"], model_name=self.config["gemini_model"])
             
         except Exception as e:
             print(f"Error initializing components: {e}")
@@ -184,7 +233,7 @@ class WhisperTypingApp:
             })
             self.listener.start()
             print(f"Ready! Press {self.config['hotkey']} to toggle recording.")
-            print("Commands: '/p' pause, '/q' quit, '/r' reload, '/c' change mic.")
+            print("Commands: '/p' pause, '/q' quit, '/r' reload, '/c' configure.")
         except ValueError as e:
             print(f"Invalid hotkey format: {e}")
 
@@ -283,8 +332,9 @@ class WhisperTypingApp:
             threading.Thread(target=run_improve).start()
         else:
              print("\nNo pending text to improve.")
-
+    
 def main() -> None:
+    # ... (arg checks) ...
     parser = argparse.ArgumentParser(description="Whisper Typing - Background Speech to Text")
     parser.add_argument("--hotkey", help="Global hotkey to toggle recording")
     parser.add_argument("--type-hotkey", help="Global hotkey to type")
@@ -317,13 +367,26 @@ def main() -> None:
             elif cmd == '/p':
                 app.toggle_pause()
             elif cmd == '/c':
-                print("Changing microphone...")
-                # Temporarily stop listener during selection to avoid hotkey conflict
-                app.stop() 
-                app.select_microphone()
-                # Re-init components (recreates recorder with new dev)
-                if app.initialize_components():
-                    app.start_listener()
+                print("\nConfiguration:")
+                print("m: Change Microphone")
+                print("g: Change Gemini Model")
+                print("c: Cancel")
+                choice = input("Select option: ").strip().lower()
+                
+                if choice == 'm':
+                    app.stop() 
+                    app.select_microphone()
+                    if app.initialize_components():
+                        app.start_listener()
+                elif choice == 'g':
+                    app.stop()
+                    app.select_gemini_model()
+                    if app.initialize_components():
+                        app.start_listener()
+                elif choice == 'c':
+                    print("Cancelled.")
+                else:
+                    print("Invalid option.")
             elif cmd:
                 print(f"Unknown command: {cmd}")
     except KeyboardInterrupt:
