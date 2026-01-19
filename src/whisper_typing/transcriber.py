@@ -15,7 +15,7 @@ class Transcriber:
         self.pipe = pipeline(
             "automatic-speech-recognition",
             model=model_id,
-            torch_dtype=torch_dtype,
+            dtype=torch_dtype,
             device=device,
         )
 
