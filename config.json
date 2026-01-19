@@ -4,7 +4,7 @@
     "improve_hotkey": "<f10>",
     "model": "openai/whisper-base",
     "language": null,
-    "gemini_api_key": "AIzaSyAcTF023lYRknyZnxT2ZQ63KiLDstbL4JI",
+    "gemini_api_key": "AIzaSyCwjS-D0Adls8-DJeVBa5gHoIL2_VDbugg",
     "gemini_prompt": "Refine and correct the following transcribed text. Maintain the original meaning but improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
     "microphone_name": "Microphone (USB Condenser Micro",
     "gemini_model": "models/gemini-2.5-flash"
