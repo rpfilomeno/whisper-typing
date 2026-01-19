@@ -33,7 +33,7 @@ class AIImprover:
             client = genai.Client(api_key=api_key)
             models = []
             for m in client.models.list():
-                if 'generateContent' in m.supported_generation_methods:
+                if 'generateContent' in m.supported_actions:
                     models.append(m.name)
             return models
         except Exception as e:
