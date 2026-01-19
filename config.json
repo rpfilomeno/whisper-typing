@@ -2,11 +2,12 @@
     "hotkey": "<f8>",
     "type_hotkey": "<f9>",
     "improve_hotkey": "<f10>",
-    "model": "openai/whisper-base",
+    "model": "openai/whisper-large-v3-turbo",
     "language": "en",
-    "gemini_prompt": "Refine and correct the following transcribed text like a pirate. Consider fixing the text due to mispronunciation, improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
+    "gemini_api_key": "AIzaSyAQhKT33suEQp8mgLEZxPRQh7M2_CyBoaE",
+    "gemini_prompt": "Refine and correct the following transcribed text. Automatiically fix tongue twisters, proverb, adage, maxim, aphorism, idiom, and clich\u00c3\u00a9. Improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
     "microphone_name": "Microphone (USB Condenser Microphone)",
     "gemini_model": "models/gemini-flash-lite-latest",
     "device": "cuda",
-    "debug": true
+    "debug": false
 }

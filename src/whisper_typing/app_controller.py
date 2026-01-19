@@ -261,18 +261,23 @@ class WhisperAppController:
         if self.paused: return
 
         if self.pending_text:
-            self.log("Typing text...")
-            # Restore focus if we have a handle
-            if self.window_manager and self.target_window_handle:
-                if not self.window_manager.focus_window(self.target_window_handle):
-                    self.log("Failed to restore focus.")
-                    return 
-                time.sleep(0.1) 
-
-            self.typer.type_text(self.pending_text)
+            text_to_type = self.pending_text
             self.pending_text = None
             if self.on_preview_update:
                 self.on_preview_update("", None)
+            
+            def _async_typing():
+                self.log(f"Simulating human typing ({len(text_to_type)} chars)...")
+                if self.window_manager and self.target_window_handle:
+                    if not self.window_manager.focus_window(self.target_window_handle):
+                        self.log("Failed to restore focus.")
+                        return 
+                    time.sleep(0.1) 
+
+                self.typer.type_text(text_to_type)
+                self.log("Typing finished.")
+
+            threading.Thread(target=_async_typing, daemon=True).start()
             self.log("Typed.")
             self.set_status("Ready")
         else:
