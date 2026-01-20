@@ -148,8 +148,9 @@ class WhisperAppController:
                 with open(env_file, "w") as f:
                     pass
             set_key(env_path=env_file, key_to_set="GEMINI_API_KEY", value_to_set=api_key)
-            # Update current session environment variable
+            # Update current session environment variable and config
             os.environ["GEMINI_API_KEY"] = api_key
+            self.config["gemini_api_key"] = api_key
             self.log("API Key updated in .env")
         except Exception as e:
             self.log(f"Error updating .env: {e}")

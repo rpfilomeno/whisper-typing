@@ -7,7 +7,7 @@
     "gemini_prompt": "Refine and correct the following transcribed text. Automatiically fix tongue twisters, proverb, adage, maxim, aphorism, idiom, and clich\u00c3\u00a9. Improve grammar, punctuation and clarity. Output ONLY the refined text, nothing else.\\n\\nText: {text}",
     "microphone_name": "Microphone (USB Condenser Microphone)",
     "gemini_model": "models/gemini-flash-lite-latest",
-    "device": "cuda",
+    "device": "cpu",
     "compute_type": "auto",
     "debug": false,
     "typing_wpm": 250

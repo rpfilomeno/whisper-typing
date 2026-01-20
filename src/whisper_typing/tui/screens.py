@@ -222,7 +222,6 @@ class ConfigurationScreen(Screen):
             "model": model_select.value,
             "device": device_select.value,
             "compute_type": compute_type_select.value,
-            "gemini_api_key": api_input.value,
             "gemini_model": gemini_model_select.value,
             "debug": debug_checkbox.value,
             "hotkey": hotkey_input.value,
