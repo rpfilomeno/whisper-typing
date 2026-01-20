@@ -27,7 +27,8 @@ def test_transcriber_initialization_cpu(
 @patch("whisper_typing.transcriber.WhisperModel")
 @patch("torch.cuda.is_available")
 def test_transcriber_initialization_cuda_auto(
-    mock_cuda_avail: MagicMock, mock_whisper_model: MagicMock  # noqa: ARG001
+    mock_cuda_avail: MagicMock,
+    mock_whisper_model: MagicMock,  # noqa: ARG001
 ) -> None:
     """Test Transcriber initialization on CUDA with auto compute type."""
     mock_cuda_avail.return_value = True
@@ -74,7 +75,8 @@ def test_transcribe_multiple_segments(mock_whisper_model: MagicMock) -> None:
 @patch("whisper_typing.transcriber.WhisperModel")
 @patch("torch.cuda.is_available")
 def test_transcriber_cuda_fallback_to_cpu(
-    mock_cuda_avail: MagicMock, mock_whisper_model: MagicMock  # noqa: ARG001
+    mock_cuda_avail: MagicMock,
+    mock_whisper_model: MagicMock,  # noqa: ARG001
 ) -> None:
     """Test Transcriber falls back to CPU when CUDA requested but unavailable."""
     mock_cuda_avail.return_value = False
