@@ -10,5 +10,6 @@
     "device": "cpu",
     "compute_type": "auto",
     "debug": false,
-    "typing_wpm": 350
+    "typing_wpm": 350,
+    "refocus_window": false
 }

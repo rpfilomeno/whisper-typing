@@ -34,6 +34,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "debug": False,
     "typing_wpm": 40,
     "gemini_api_key": None,
+    "refocus_window": True,
 }
 
 
@@ -357,8 +358,10 @@ class WhisperAppController:
 
     def _start_recording(self) -> None:
         """Handle the start of an audio recording session."""
-        if self.window_manager:
+        if self.config.get("refocus_window", True) and self.window_manager:
             self.target_window_handle = self.window_manager.get_active_window()
+        else:
+            self.target_window_handle = None
 
         self.pending_text = None
         if self.on_preview_update:
@@ -473,7 +476,8 @@ class WhisperAppController:
     def _async_typing_wrapper(self, text: str) -> None:
         """Wrap asynchronous typing simulation."""
         try:
-            if self.window_manager and self.target_window_handle:
+            do_refocus = self.config.get("refocus_window", True)
+            if do_refocus and self.window_manager and self.target_window_handle:
                 if not self.window_manager.focus_window(self.target_window_handle):
                     self.log("Failed to restore focus.")
                     self._is_typing = False

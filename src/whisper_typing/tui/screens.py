@@ -187,6 +187,10 @@ class ConfigurationScreen(Screen[bool]):
             Input(value=str(config.get("typing_wpm", 40)), id="typing_wpm_input"),
             Label("Debug Mode:"),
             Checkbox(value=config.get("debug", False), id="debug_checkbox"),
+            Label("Refocus Window:"),
+            Checkbox(
+                value=config.get("refocus_window", True), id="refocus_checkbox"
+            ),
             Horizontal(
                 Button("Save", variant="primary", id="save_btn"),
                 Button("Cancel", variant="error", id="cancel_btn"),
@@ -219,6 +223,7 @@ class ConfigurationScreen(Screen[bool]):
         type_input = self.query_one("#type_hotkey_input", Input)
         gemini_model_select = self.query_one("#gemini_model_select", Select)
         debug_checkbox = self.query_one("#debug_checkbox", Checkbox)
+        refocus_checkbox = self.query_one("#refocus_checkbox", Checkbox)
         typing_wpm_input = self.query_one("#typing_wpm_input", Input)
         compute_type_select = self.query_one("#compute_type_select", Select)
 
@@ -234,6 +239,7 @@ class ConfigurationScreen(Screen[bool]):
             "compute_type": compute_type_select.value,
             "gemini_model": gemini_model_select.value,
             "debug": debug_checkbox.value,
+            "refocus_window": refocus_checkbox.value,
             "hotkey": hotkey_input.value,
             "type_hotkey": type_input.value,
             "typing_wpm": typing_wpm,
