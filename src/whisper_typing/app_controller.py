@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import sounddevice as sd
-from dotenv import find_dotenv, set_key
+from dotenv import find_dotenv
 from pynput import keyboard
 
 from whisper_typing.ai_improver import AIImprover
@@ -33,6 +33,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "compute_type": "auto",
     "debug": False,
     "typing_wpm": 40,
+    "gemini_api_key": None,
 }
 
 
@@ -284,11 +285,10 @@ class WhisperAppController:
                 self.current_device = device
                 self.current_compute_type = compute_type
 
-            # Recreate recorder with specific device
             self.recorder = AudioRecorder(device_index=self.current_mic_index)
             self.typer = Typer(wpm=self.config.get("typing_wpm", 40))
             self.improver = AIImprover(
-                api_key=self.config["gemini_api_key"],
+                api_key=self.config.get("gemini_api_key"),
                 model_name=self.config.get("gemini_model") or "gemini-1.5-flash",
                 debug=self.config.get("debug", False),
                 logger=self.log,
@@ -518,6 +518,10 @@ class WhisperAppController:
             return
 
         if self.pending_text:
+            if not self.config.get("gemini_api_key"):
+                self.log("AI Improvement disabled: Gemini API Key missing.")
+                return
+
             self.is_processing = True
             self.set_status("Improving AI")
             self.log("Requesting AI improvement...")

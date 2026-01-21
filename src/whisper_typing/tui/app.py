@@ -133,6 +133,7 @@ class WhisperTui(App[None]):
         self.write_log("Loading models... (this may take a few seconds)")
         self.update_status("Loading...")
         success = self.controller.initialize_components()
+        self.call_from_thread(self.update_shortcuts_display)
         if success:
             self.controller.start_listener()
             self.update_status("Ready")
@@ -145,14 +146,22 @@ class WhisperTui(App[None]):
     def update_shortcuts_display(self) -> None:
         """Update the displayed global hotkeys."""
         cfg = self.controller.config
-        text = (
-            f"Global Keys: {cfg.get('hotkey', '?')} = Record | "
-            f"{cfg.get('type_hotkey', '?')} = Type | "
-            f"{cfg.get('improve_hotkey', '?')} = Improve"
-        )
+        has_api_key = bool(cfg.get("gemini_api_key"))
+
+        record_key = cfg.get("hotkey", "?")
+        type_key = cfg.get("type_hotkey", "?")
+        improve_key = cfg.get("improve_hotkey", "?")
+
+        text = f"Global Keys: {record_key} = Record | {type_key} = Type | "
+
+        if has_api_key:
+            text += f"{improve_key} = Improve"
+        else:
+            text += f"[dim]{improve_key} = Improve (Disabled)[/dim]"
+
         self.shortcuts_text = text
         with contextlib.suppress(Exception):
-            self.query_one("#shortcuts_info", Label).update(text)
+            self.query_one("#shortcuts_info", Label).update(Text.from_markup(text))
 
     def write_log(self, message: str) -> None:
         """Write a message to the TUI log area.

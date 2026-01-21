@@ -11,7 +11,7 @@ class AIImprover:
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str | None,
         model_name: str = "gemini-1.5-flash",
         *,
         debug: bool = False,
@@ -53,7 +53,7 @@ class AIImprover:
             self.logger(message)
 
     @staticmethod
-    def list_models(api_key: str) -> list[str]:
+    def list_models(api_key: str | None) -> list[str]:
         """List available Gemini models that support content generation.
 
         Args:
@@ -63,6 +63,8 @@ class AIImprover:
             A list of supported model names.
 
         """
+        if not api_key:
+            return []
         try:
             client = genai.Client(api_key=api_key)
             return [
