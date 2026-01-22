@@ -47,6 +47,14 @@ Run the application using `uv`:
 uv run whisper-typing
 ```
 
+## Build EXE
+
+Build a Windows executable application:
+
+```bash
+build_dist.ps1
+```
+
 ### TUI Shortcuts
 
 Inside the application, you can use these keys:
